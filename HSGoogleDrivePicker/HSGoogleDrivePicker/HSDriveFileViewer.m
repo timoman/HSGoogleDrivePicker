@@ -162,7 +162,7 @@
          }
          else
          {
-             self.fileList=fileList;
+            self.fileList=fileList;
          }
          
          [self updateDisplay];
@@ -198,6 +198,7 @@
     [segmentedControl addTarget:self action:@selector(mineSharedChanged:) forControlEvents:UIControlEventValueChanged];
     segmentedControl.frame = CGRectMake(0, 0, 100, 30);
     segmentedControl.selectedSegmentIndex = 0;
+    segmentedControl.tintColor = [UIColor colorWithRed:0.541 green:0.855 blue:0.302 alpha:1.0];
     UIBarButtonItem *segmentedControlButtonItem = [[UIBarButtonItem alloc] initWithCustomView:(UIView *)segmentedControl];
     self.segmentedControlButtonItem=segmentedControlButtonItem;
     
