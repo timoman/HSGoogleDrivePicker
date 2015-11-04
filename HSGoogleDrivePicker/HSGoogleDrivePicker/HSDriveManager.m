@@ -157,9 +157,8 @@ static NSString *const kKeychainItemName = @"Drive API";
                       delegate:self
                       finishedSelector:@selector(viewController:finishedWithAuth:error:)];
     
-    UIBarButtonItem *done=[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
-                                                                        target:self
-                                                                        action:@selector(cancel:)];
+    UIBarButtonItem *done=[[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStylePlain target:self action:@selector(cancel:)];
+                           
     [authController.navigationItem setLeftBarButtonItem:done animated:NO];
     
     return authController;
