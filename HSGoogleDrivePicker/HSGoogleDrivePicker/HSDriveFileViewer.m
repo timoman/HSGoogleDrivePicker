@@ -9,6 +9,7 @@
 #import "HSDriveFileViewer.h"
 #import "HSDriveManager.h"
 #import "AsyncImageView.h"
+#import "GTMOAuth2ViewControllerTouch.h"
 #import "UIScrollView+SVPullToRefresh.h"
 
 
@@ -24,7 +25,6 @@
 @property (retain) GTLDriveFileList *fileList;
 @property (retain) UIImage *blankImage;
 @property (retain) UIBarButtonItem *upItem;
-@property (retain) UIBarButtonItem *segmentedControlButtonItem;
 @property (retain) NSMutableArray *folderTrail;
 @property (assign) BOOL showShared;
 
@@ -34,7 +34,7 @@
 
 @implementation HSDriveFileViewer
 
-
+static NSString *const kKeychainItemName = @"Drive API";
 
 - (instancetype)initWithId:(NSString*)clientId secret:(NSString*)secret
 {
@@ -62,6 +62,8 @@
     [super viewDidLoad];
     
     self.navigationController.navigationBar.translucent = NO;
+    [self.navigationController.navigationBar setTintColor:[UIColor colorWithRed:0.541 green:0.855 blue:0.302 alpha:1.0]];
+    [self.navigationController.navigationBar setTitleTextAttributes:@{NSFontAttributeName: [UIFont fontWithName:@"HelveticaNeue" size:16.0], NSKernAttributeName: @2.0}];
     
     [self.view setBackgroundColor:[UIColor whiteColor]];
     
@@ -75,6 +77,7 @@
     
     UIToolbar *toolbar=[UIToolbar new];
     [toolbar setTranslatesAutoresizingMaskIntoConstraints:NO];
+    [toolbar setTintColor:[UIColor colorWithRed:0.541 green:0.855 blue:0.302 alpha:1.0]];
     self.toolbar=toolbar;
     [self.view addSubview:toolbar];
     
@@ -113,6 +116,17 @@
     
 }
 
+- (NSArray *)onlyPdfsAndFoldersInItems:(NSArray *)items
+{
+    NSMutableArray *filteredItems = [[NSMutableArray alloc] init];
+    for (GTLDriveFile *file in items) {
+        if ([file.mimeType isEqualToString:@"application/pdf"] || [file.mimeType isEqualToString:@"application/vnd.google-apps.folder"]) {
+            [filteredItems addObject:file];
+        }
+    }
+    return filteredItems;
+}
+
 
 // When the view appears, ensure that the Drive API service is authorized, and perform API calls.
 - (void)viewDidAppear:(BOOL)animated
@@ -134,6 +148,12 @@
 
 -(void)cancel:(id)sender
 {
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)signOut:(id)sender
+{
+    [GTMOAuth2ViewControllerTouch removeAuthFromKeychainForName:kKeychainItemName];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
@@ -176,7 +196,7 @@
     
     if (self.fileList)
     {
-        if (self.fileList.items.count)
+        if ([self onlyPdfsAndFoldersInItems:self.fileList.items].count)
         {
             [self.table setHidden:NO];
             [self.table reloadData];
@@ -187,34 +207,26 @@
             [self.table setHidden:YES];
         }
     }
-
 }
-
 
 -(void)setupButtons
 {
     NSArray *segItemsArray = [NSArray arrayWithObjects: @"Mine",@"Shared", nil];
     UISegmentedControl *segmentedControl = [[UISegmentedControl alloc] initWithItems:segItemsArray];
-    [segmentedControl addTarget:self action:@selector(mineSharedChanged:) forControlEvents:UIControlEventValueChanged];
-    segmentedControl.frame = CGRectMake(0, 0, 100, 30);
-    segmentedControl.selectedSegmentIndex = 0;
-    segmentedControl.tintColor = [UIColor colorWithRed:0.541 green:0.855 blue:0.302 alpha:1.0];
-    UIBarButtonItem *segmentedControlButtonItem = [[UIBarButtonItem alloc] initWithCustomView:(UIView *)segmentedControl];
-    self.segmentedControlButtonItem=segmentedControlButtonItem;
-    
-    UIBarButtonItem *doneItem=[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel
-                                                                target:self
-                                                                action:@selector(cancel:)];
-    
-    self.upItem=[[UIBarButtonItem alloc] initWithTitle:@"Up"
-                                                 style:UIBarButtonItemStylePlain
-                                                target:self
-                                                action:@selector(up:)];
     
     
+    UIBarButtonItem *closeButton=[[UIBarButtonItem alloc] initWithTitle:@"Close" style:UIBarButtonItemStylePlain target:self action:@selector(cancel:)];
+    [closeButton setTitleTextAttributes:@{NSFontAttributeName: [UIFont fontWithName:@"HelveticaNeue-Medium" size:18.0], NSKernAttributeName: @2.0} forState:UIControlStateNormal];
     
-    [self.navigationItem setLeftBarButtonItem:doneItem
+    self.upItem=[[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(up:)];
+    [self.upItem setTitleTextAttributes:@{NSFontAttributeName: [UIFont fontWithName:@"HelveticaNeue-Medium" size:16.0], NSKernAttributeName: @2.0} forState:UIControlStateNormal];
+    
+    // This should eventually sign you out of Google.
+    [self.navigationItem setLeftBarButtonItem:closeButton
                                       animated:YES];
+    UIBarButtonItem *signOutButton = [[UIBarButtonItem alloc] initWithTitle:@"Sign Out" style:UIBarButtonItemStylePlain target:self action:@selector(signOut:)];
+    [signOutButton setTitleTextAttributes:@{NSFontAttributeName: [UIFont fontWithName:@"HelveticaNeue-Medium" size:18.0], NSKernAttributeName: @2.0} forState:UIControlStateNormal];
+    [self.navigationItem setRightBarButtonItem:signOutButton];
 }
 
 -(void)updateButtons
@@ -225,11 +237,11 @@
     
     if ([self.folderTrail count]>1 && !self.showShared)
     {
-        [self.toolbar setItems:@[self.upItem,flex,self.segmentedControlButtonItem] animated:YES];
+        [self.toolbar setItems:@[self.upItem,flex] animated:YES];
     }
     else
     {
-        [self.toolbar setItems:@[flex,self.segmentedControlButtonItem] animated:YES];
+        [self.toolbar setItems:@[flex] animated:YES];
     }
 }
 
@@ -276,13 +288,17 @@
 
 -(GTLDriveFile*)fileForIndexPath:(nonnull NSIndexPath *)indexPath
 {
-    return [self.fileList.items objectAtIndex:[indexPath row]];
+    NSArray *filteredFiles = [self onlyPdfsAndFoldersInItems:self.fileList.items];
+    if (filteredFiles.count) {
+        return [filteredFiles objectAtIndex:[indexPath row]];
+    }
+    return nil;
 }
 
 
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return [self.fileList.items count];
+    return [[self onlyPdfsAndFoldersInItems:self.fileList.items] count];
 }
 
 -(UITableViewCell*)tableView:(UITableView *)tableView cellForRowAtIndexPath:(nonnull NSIndexPath *)indexPath
@@ -308,6 +324,7 @@
     if (file)
     {
         [cell.textLabel setText:file.title];
+        [cell.textLabel setFont:[UIFont fontWithName:@"HelveticaNeue" size:16]];
         [async setImageURL:[NSURL URLWithString:file.iconLink]];
     }
     else
@@ -322,6 +339,7 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     GTLDriveFile *file=[self fileForIndexPath:indexPath];
+    NSLog(@"FILE: %@", file.title);
     if ([file isFolder])
     {
         [self openFolder:file];
