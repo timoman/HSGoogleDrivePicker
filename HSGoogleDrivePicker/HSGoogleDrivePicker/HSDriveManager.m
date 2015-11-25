@@ -156,11 +156,11 @@ static NSString *const kKeychainItemName = @"Drive API";
                       keychainItemName:kKeychainItemName
                       delegate:self
                       finishedSelector:@selector(viewController:finishedWithAuth:error:)];
-    
-    UIBarButtonItem *done=[[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStylePlain target:self action:@selector(cancel:)];
-                           
-    [authController.navigationItem setLeftBarButtonItem:done animated:NO];
-    
+   UIBarButtonItem *closeButton = [[UIBarButtonItem alloc] initWithTitle:@"Close" style:UIBarButtonItemStylePlain target:self action:@selector(cancel:)];
+    [closeButton setTitleTextAttributes:@{NSFontAttributeName: [UIFont fontWithName:@"HelveticaNeue-Medium" size:18.0], NSKernAttributeName: @2.0} forState:UIControlStateNormal];
+
+    [authController.navigationItem setLeftBarButtonItem:closeButton animated:NO];
+
     return authController;
 }
 
