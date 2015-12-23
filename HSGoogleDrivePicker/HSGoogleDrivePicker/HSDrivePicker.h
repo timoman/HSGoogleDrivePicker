@@ -10,7 +10,10 @@
 #import "GTLDrive.h"
 #import "HSDriveManager.h"
 
+@class HSDriveFileViewer;
 @interface HSDrivePicker : UINavigationController
+
+- (instancetype)initWithViewer:(HSDriveFileViewer *)viewer;
 
 /** Provide your API id & secret **/
 - (instancetype)initWithId:(NSString*)clientId secret:(NSString*)secret;
@@ -22,10 +25,10 @@
 
 /*
 
-Appearance can mostly be managed through the appearance proxy.
-e.g.  [[UINavigationBar appearance] setBackgroundImage: <your image> ];
- 
-*/
+ Appearance can mostly be managed through the appearance proxy.
+ e.g.  [[UINavigationBar appearance] setBackgroundImage: <your image> ];
+
+ */
 
 
 /**specify status bar style. Default is UIStatusBarStyleDefault **/

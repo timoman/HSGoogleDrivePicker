@@ -17,14 +17,13 @@
 
 @implementation HSDrivePicker
 
-- (instancetype)initWithId:(NSString*)clientId secret:(NSString*)secret
+- (instancetype)initWithViewer:(HSDriveFileViewer *)viewer
 {
-    HSDriveFileViewer *viewer=[[HSDriveFileViewer alloc] initWithId:clientId secret:secret];
     if (!viewer)
     {
         return NULL;
     }
-    
+
     self = [super initWithRootViewController:viewer];
     if (self) {
         self.preferredStatusBarStyle=UIStatusBarStyleDefault;
@@ -34,25 +33,30 @@
     return self;
 }
 
+- (instancetype)initWithId:(NSString*)clientId secret:(NSString*)secret
+{
+    return [self initWithViewer:[[HSDriveFileViewer alloc] initWithId:clientId secret:secret]];
+}
+
 -(void)pickFromViewController:(UIViewController*)vc withCompletion:(void (^)(HSDriveManager *manager, GTLDriveFile *file))completion
 {
     self.viewer.completion=completion;
-    
+
     [vc presentViewController:self
-                       animated:YES
-                     completion:nil];
+                     animated:YES
+                   completion:nil];
 }
 
 - (void)downloadFileContentWithService:(GTLServiceDrive *)service
                                   file:(GTLDriveFile *)file
                        completionBlock:(void (^)(NSData *, NSError *))completionBlock
 {
-    
+
     if (file.downloadUrl != nil)
     {
         GTMHTTPFetcher *fetcher =
         [service.fetcherService fetcherWithURLString:file.downloadUrl];
-        
+
         [fetcher beginFetchWithCompletionHandler:^(NSData *data, NSError *error) {
             if (error == nil) {
                 // Success.
