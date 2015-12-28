@@ -18,5 +18,6 @@ typedef void (^GDriveFileViewerCompletionBlock)(HSDriveManager *manager, GTLDriv
 @property (copy) GDriveFileViewerCompletionBlock completion;
 
 - (instancetype)initWithId:(NSString*)clientId secret:(NSString*)secret;
+- (instancetype)initWithManager:(HSDriveManager *)manager;
 
 @end

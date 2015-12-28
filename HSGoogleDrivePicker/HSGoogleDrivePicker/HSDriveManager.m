@@ -18,6 +18,7 @@ static NSString *const kKeychainItemName = @"Drive API";
 @property (retain) NSString *clientSecret;
 @property (nonatomic, strong) GTLServiceDrive *service;
 @property (retain) GTMOAuth2ViewControllerTouch *authController;
+@property (nonatomic) Class authControllerClass;
 
 @end
 
@@ -25,21 +26,30 @@ static NSString *const kKeychainItemName = @"Drive API";
 
 - (instancetype)initWithId:(NSString*)clientId secret:(NSString*)secret
 {
+    return [self initWithId:clientId secret:secret authControllerClass:[GTMOAuth2ViewControllerTouch class]];
+}
+
+- (instancetype)initWithId:(NSString*)clientId secret:(NSString*)secret authControllerClass:(Class)authControllerClass
+{
     self = [super init];
     if (self) {
-        
+        if (![authControllerClass isSubclassOfClass:[GTMOAuth2ViewControllerTouch class]]) {
+            [NSException raise:@"Invalid authControllerClass" format:@"authControllerClass must be a subclass of GTMOAuth2ViewControllerTouch but was %@", authControllerClass];
+        } else {
+            self.authControllerClass = authControllerClass;
+        }
+
         self.clientId=clientId;
         self.clientSecret=secret;
-        
         // Initialize the Drive API service & load existing credentials from the keychain if available.
         self.service = [[GTLServiceDrive alloc] init];
         self.service.authorizer = [GTMOAuth2ViewControllerTouch authForGoogleFromKeychainForName:kKeychainItemName
-                                                              clientID:self.clientId
-                                                          clientSecret:self.clientSecret];
-        
+                                                                                        clientID:self.clientId
+                                                                                    clientSecret:self.clientSecret];
+
         self.folderId=@"root";
         self.maxResults=1000;
-        
+
     }
     return self;
 }
@@ -50,7 +60,7 @@ static NSString *const kKeychainItemName = @"Drive API";
 {
     GTMHTTPFetcher *fetcher = [self.service.fetcherService fetcherWithURLString:file.downloadUrl];
     [fetcher setDownloadPath:path];
-    
+
     [fetcher beginFetchWithCompletionHandler:^(NSData *data, NSError *error) {
         if (error == nil) {
             // Success.
@@ -60,7 +70,7 @@ static NSString *const kKeychainItemName = @"Drive API";
             handler( error);
         }
     }];
-    
+
     return fetcher;
 }
 
@@ -73,31 +83,31 @@ static NSString *const kKeychainItemName = @"Drive API";
     {
         query=@"sharedWithMe";
     }
-    
+
     if (!self.showTrashed)
     {
         query=[query stringByAppendingString:@" and trashed = false"];
     }
 
-    
+
     return query;
 }
 
 // Construct a query to get names and IDs of 10 files using the Google Drive API.
 - (void)fetchFilesWithCompletionHandler:(void (^)(GTLServiceTicket *ticket, GTLDriveFileList *fileList, NSError *error))handler
 {
-    
+
     self.service.shouldFetchNextPages = self.autoFetchPages;
-    
+
     GTLQueryDrive *query = [GTLQueryDrive queryForFilesList];
-    
+
     query.q=[self query];
-    
+
     query.maxResults = self.maxResults;
-    
+
     [self.service executeQuery:query
              completionHandler:handler];
-   
+
 }
 
 // Process the response and display output.
@@ -149,17 +159,13 @@ static NSString *const kKeychainItemName = @"Drive API";
 - (GTMOAuth2ViewControllerTouch *)createAuthController {
     GTMOAuth2ViewControllerTouch *authController;
     NSArray *scopes = [NSArray arrayWithObjects:kGTLAuthScopeDrive, nil];
-    authController = [[GTMOAuth2ViewControllerTouch alloc]
+    authController = [[self.authControllerClass alloc]
                       initWithScope:[scopes componentsJoinedByString:@" "]
                       clientID:self.clientId
                       clientSecret:self.clientSecret
                       keychainItemName:kKeychainItemName
                       delegate:self
                       finishedSelector:@selector(viewController:finishedWithAuth:error:)];
-   UIBarButtonItem *closeButton = [[UIBarButtonItem alloc] initWithTitle:@"Close" style:UIBarButtonItemStylePlain target:self action:@selector(cancel:)];
-    [closeButton setTitleTextAttributes:@{NSFontAttributeName: [UIFont fontWithName:@"HelveticaNeue-Medium" size:18.0], NSKernAttributeName: @2.0} forState:UIControlStateNormal];
-
-    [authController.navigationItem setLeftBarButtonItem:closeButton animated:NO];
 
     return authController;
 }

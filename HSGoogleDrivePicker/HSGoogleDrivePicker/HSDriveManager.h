@@ -14,6 +14,7 @@
 @interface HSDriveManager : NSObject
 
 - (instancetype)initWithId:(NSString*)clientId secret:(NSString*)secret;
+- (instancetype)initWithId:(NSString*)clientId secret:(NSString*)secret authControllerClass:(Class)authControllerClass;
 
 /** returns auth view if it is required. Returns NULL if user is logged in **/
 - (UIViewController*)authorisationViewController;
@@ -21,7 +22,7 @@
 /** runs a fetch with the current search settings. Cancels any outstanding fetch **/
 - (void)fetchFilesWithCompletionHandler:(void (^)(GTLServiceTicket *ticket, GTLDriveFileList *fileList, NSError *error))handler;
 
-/** If the download completes succesfully, then the completion handler will be called with NULL for the error 
+/** If the download completes succesfully, then the completion handler will be called with NULL for the error
  returns GTMHTTPFetcher - this can be used to monitor download progress.
  **/
 -(GTMHTTPFetcher*)downloadFile:(GTLDriveFile*)file toPath:(NSString*)path withCompletionHandler:(void (^)(NSError *error))handler;
