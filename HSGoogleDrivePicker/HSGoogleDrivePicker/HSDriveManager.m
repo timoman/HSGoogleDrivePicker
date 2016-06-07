@@ -58,7 +58,7 @@ static NSString *const kKeychainItemName = @"Drive API";
 
 -(GTMHTTPFetcher*)downloadFile:(GTLDriveFile*)file toPath:(NSString*)path withCompletionHandler:(void (^)(NSError *error))handler
 {
-    GTMHTTPFetcher *fetcher = [self.service.fetcherService fetcherWithURLString:file.downloadUrl];
+    GTMHTTPFetcher *fetcher = [self.service.fetcherService fetcherWithURLString:file.webContentLink];
     [fetcher setDownloadPath:path];
 
     [fetcher beginFetchWithCompletionHandler:^(NSData *data, NSError *error) {
@@ -103,7 +103,7 @@ static NSString *const kKeychainItemName = @"Drive API";
 
     query.q=[self query];
 
-    query.maxResults = self.maxResults;
+    query.pageSize = self.maxResults;
 
     [self.service executeQuery:query
              completionHandler:handler];
@@ -118,12 +118,12 @@ static NSString *const kKeychainItemName = @"Drive API";
     if (error == nil)
     {
         NSMutableString *filesString = [[NSMutableString alloc] init];
-        if (files.items.count > 0)
+        if (files.files.count > 0)
         {
             [filesString appendString:@"Files:\n"];
             for (GTLDriveFile *file in files)
             {
-                [filesString appendFormat:@"%@ (%@)\n", file.title, file.identifier];
+                [filesString appendFormat:@"%@ (%@)\n", file.name, file.identifier];
             }
         }
         else
