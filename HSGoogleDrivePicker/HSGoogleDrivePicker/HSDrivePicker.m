@@ -12,6 +12,7 @@
 @interface HSDrivePicker ()
 
 @property (retain) HSDriveFileViewer *viewer;
+@property (assign) UIStatusBarStyle thePreferredStatusBarStyle;
 
 @end
 
@@ -33,9 +34,12 @@
     return self;
 }
 
-- (instancetype)initWithId:(NSString*)clientId secret:(NSString*)secret
-{
-    return [self initWithViewer:[[HSDriveFileViewer alloc] initWithId:clientId secret:secret]];
+-(UIStatusBarStyle)preferredStatusBarStyle {
+    return self.thePreferredStatusBarStyle;
+}
+
+-(void)setPreferredStatusBarStyle:(UIStatusBarStyle)thePreferredStatusBarStyle {
+    self.thePreferredStatusBarStyle = thePreferredStatusBarStyle;
 }
 
 -(void)pickFromViewController:(UIViewController*)vc withCompletion:(void (^)(HSDriveManager *manager, GTLDriveFile *file))completion
@@ -54,9 +58,7 @@
 
     if (file.downloadUrl != nil)
     {
-        GTMHTTPFetcher *fetcher =
-        [service.fetcherService fetcherWithURLString:file.downloadUrl];
-
+        GTMSessionFetcher *fetcher = [service.fetcherService fetcherWithURLString:file.downloadUrl];
         [fetcher beginFetchWithCompletionHandler:^(NSData *data, NSError *error) {
             if (error == nil) {
                 // Success.

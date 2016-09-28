@@ -29,6 +29,7 @@
 @property (assign) BOOL showShared;
 
 
+
 @end
 
 
@@ -201,7 +202,7 @@ static NSString *const kKeychainItemName = @"Drive API";
 
     if (self.fileList)
     {
-        if ([self onlyPdfsAndFoldersInItems:self.fileList.items].count)
+        if (self.fileList.files.count)
         {
             [self.table setHidden:NO];
             [self.table reloadData];
@@ -293,17 +294,13 @@ static NSString *const kKeychainItemName = @"Drive API";
 
 -(GTLDriveFile*)fileForIndexPath:(nonnull NSIndexPath *)indexPath
 {
-    NSArray *filteredFiles = [self onlyPdfsAndFoldersInItems:self.fileList.items];
-    if (filteredFiles.count) {
-        return [filteredFiles objectAtIndex:[indexPath row]];
-    }
-    return nil;
+    return [self.fileList.files objectAtIndex:[indexPath row]];
 }
 
 
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return [[self onlyPdfsAndFoldersInItems:self.fileList.items] count];
+    return [self.fileList.files count];
 }
 
 -(UITableViewCell*)tableView:(UITableView *)tableView cellForRowAtIndexPath:(nonnull NSIndexPath *)indexPath
@@ -328,8 +325,7 @@ static NSString *const kKeychainItemName = @"Drive API";
 
     if (file)
     {
-        [cell.textLabel setText:file.title];
-        [cell.textLabel setFont:[UIFont fontWithName:@"HelveticaNeue" size:16]];
+        [cell.textLabel setText:file.name];
         [async setImageURL:[NSURL URLWithString:file.iconLink]];
     }
     else

@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "GTLDrive.h"
+#import <GoogleAPIClient/GTLDrive.h>
 #import "HSDriveManager.h"
 
 @class HSDriveFileViewer;
@@ -25,13 +25,22 @@
 
 /*
 
- Appearance can mostly be managed through the appearance proxy.
- e.g.  [[UINavigationBar appearance] setBackgroundImage: <your image> ];
-
- */
+Appearance can mostly be managed through the appearance proxy.
+e.g.  [[UINavigationBar appearance] setBackgroundImage: <your image> ];
+ 
+ or to style the segmented control (which is addmittedly wierd)
+ 
+ //selected text
+ [[UISegmentedControl appearance] setTitleTextAttributes:@{NSForegroundColorAttributeName : [UIColor redColor]} forState:UIControlStateSelected];
+ //not selected text
+ [[UISegmentedControl appearance] setTitleTextAttributes:@{NSForegroundColorAttributeName : [UIColor greenColor]} forState:UIControlStateNormal];
+ //background
+ [[UIImageView appearanceWhenContainedIn:[UISegmentedControl class],nil] setTintColor:[UIColor blueColor]];
+ 
+*/
 
 
 /**specify status bar style. Default is UIStatusBarStyleDefault **/
-@property (assign) UIStatusBarStyle preferredStatusBarStyle;
+-(void)setPreferredStatusBarStyle:(UIStatusBarStyle)thePreferredStatusBarStyle;
 
 @end
