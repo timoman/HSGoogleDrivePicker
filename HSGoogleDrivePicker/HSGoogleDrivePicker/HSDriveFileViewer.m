@@ -202,7 +202,7 @@ static NSString *const kKeychainItemName = @"Drive API";
 
     if (self.fileList)
     {
-        if (self.fileList.files.count)
+        if ([self onlyPdfsAndFoldersInItems:self.fileList.files].count)
         {
             [self.table setHidden:NO];
             [self.table reloadData];
@@ -293,14 +293,18 @@ static NSString *const kKeychainItemName = @"Drive API";
 #pragma mark table
 
 -(GTLDriveFile*)fileForIndexPath:(nonnull NSIndexPath *)indexPath
-{
-    return [self.fileList.files objectAtIndex:[indexPath row]];
+{    
+    NSArray *filteredFiles = [self onlyPdfsAndFoldersInItems:self.fileList.files];
+    if (filteredFiles.count) {
+        return [filteredFiles objectAtIndex:[indexPath row]];
+    }
+    return nil;
 }
 
 
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return [self.fileList.files count];
+    return [[self onlyPdfsAndFoldersInItems:self.fileList.files] count];
 }
 
 -(UITableViewCell*)tableView:(UITableView *)tableView cellForRowAtIndexPath:(nonnull NSIndexPath *)indexPath
