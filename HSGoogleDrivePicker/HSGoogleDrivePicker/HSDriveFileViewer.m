@@ -340,7 +340,6 @@ static NSString *const kKeychainItemName = @"Drive API";
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     GTLDriveFile *file=[self fileForIndexPath:indexPath];
-    NSLog(@"FILE: %@", file.title);
     if ([file isFolder])
     {
         [self openFolder:file];
