@@ -14,6 +14,7 @@
 @interface HSDriveManager : NSObject
 
 - (instancetype)initWithId:(NSString*)clientId secret:(NSString*)secret;
+- (instancetype)initWithId:(NSString*)clientId secret:(NSString*)secret authControllerClass:(Class)authControllerClass;
     
  /** called by view controller when auth changes after a sign in **/
 -(void)updateAuthoriser;
