@@ -7,6 +7,7 @@
 //
 
 #import "HSDriveManager.h"
+#import "HSGIDSignInHandler.h"
 #import <GTMOAuth2/GTMOAuth2ViewControllerTouch.h>
 
 
@@ -43,10 +44,9 @@ static NSString *const kKeychainItemName = @"Drive API";
         self.clientSecret=secret;
         // Initialize the Drive API service & load existing credentials from the keychain if available.
         self.service = [[GTLServiceDrive alloc] init];
-        self.service.authorizer = [GTMOAuth2ViewControllerTouch authForGoogleFromKeychainForName:kKeychainItemName
-                                                                                        clientID:self.clientId
-                                                                                    clientSecret:self.clientSecret];
-
+        
+        self.service.authorizer = [HSGIDSignInHandler authoriser];
+        
         self.folderId=@"root";
         self.maxResults=1000;
 
@@ -113,56 +113,10 @@ static NSString *const kKeychainItemName = @"Drive API";
 
 #pragma mark auth controller
 
-
--(UIViewController*)authorisationViewController
+-(void)updateAuthoriser
 {
-    if (!self.service.authorizer.canAuthorize)
-    {
-        self.authController=[self createAuthController];
-        return self.authController;
-    }
-    else
-    {
-        return NULL;
-    }
+    self.service.authorizer = [HSGIDSignInHandler authoriser];
 }
 
-// Creates the auth controller for authorizing access to Drive API.
-- (GTMOAuth2ViewControllerTouch *)createAuthController {
-    GTMOAuth2ViewControllerTouch *authController;
-    NSArray *scopes = [NSArray arrayWithObjects:kGTLAuthScopeDrive, nil];
-    authController = [[self.authControllerClass alloc]
-                      initWithScope:[scopes componentsJoinedByString:@" "]
-                      clientID:self.clientId
-                      clientSecret:self.clientSecret
-                      keychainItemName:kKeychainItemName
-                      delegate:self
-                      finishedSelector:@selector(viewController:finishedWithAuth:error:)];
-
-    return authController;
-}
-
-// Handle completion of the authorization process, and update the Drive API
-// with the new credentials.
-- (void)viewController:(GTMOAuth2ViewControllerTouch *)viewController
-      finishedWithAuth:(GTMOAuth2Authentication *)authResult
-                 error:(NSError *)error {
-    if (error != nil)
-    {
-        NSLog(@"Authentication Error: %@",error.localizedDescription);
-        //TODO return error
-        self.service.authorizer = nil;
-    }
-    else
-    {
-        self.service.authorizer = authResult;
-        [self.authController dismissViewControllerAnimated:YES completion:nil];
-    }
-}
-
--(void)cancel:(id)sender
-{
-    [self.authController dismissViewControllerAnimated:YES completion:nil];
-}
 
 @end
